@@ -139,10 +139,18 @@
         recognition.continuous = false; // iOSの安定性のために一旦falseに設定
 
         recognition.onresult = (event) => {
-          const transcript = event.results[0][0].transcript;
-          document.getElementById('status-text').innerText = transcript;
-          document.getElementById('user-input').value = transcript;
-        };
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('status-text').innerText = transcript;
+                document.getElementById('user-input').value = transcript;
+
+                // 💡 3秒間沈黙が続いたら自動で閉じて送信するタイマー（任意）
+                clearTimeout(window.micTimer);
+                window.micTimer = setTimeout(() => {
+                   if(document.getElementById('live-overlay').classList.contains('active')) {
+                       closeLiveMode();
+                   }
+                }, 3000);
+              };
 
         recognition.onerror = (event) => {
           console.error("Mic Error:", event.error);
@@ -232,7 +240,11 @@
       function closeLiveMode() {
         document.getElementById('live-overlay').classList.remove('active');
         if (recognition) recognition.stop();
-        if (document.getElementById('user-input').value.trim() !== "") send();
+        
+        // 💡 ここが重要：入力欄に文字があれば送信する
+        if (document.getElementById('user-input').value.trim() !== "") {
+          send();
+        }
       }
 
       function switchMode(mode) {
