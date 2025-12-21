@@ -119,111 +119,147 @@
   </div>
 
   <script>
-    /* --- 🚀 修正済みのスクリプト部分 --- */
-    const isArchitect = true;
-    const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbzUErv5B6v8uMA5YhX_LMam55a5Re082GPBjF3SOsaojsuUYQDTMQ0_sa8gaTC728k6/exec"; // 👈ここが命！
-    const AERO8_KEY = "earD";
+      /* --- 🚀 統合制御システム (Communication & Voice) --- */
+      const isArchitect = true;
+      const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbzUErv5B6v8uMA5YhX_LMam55a5Re082GPBjF3SOsaojsuUYQDTMQ0_sa8gaTC728k6/exec";
+      const AERO8_KEY = "earD";
 
-    let currentMode = 'partner';
-    let currentImageBase64 = null;
-    let currentImageMime = null;
+      let currentMode = 'partner';
+      let currentImageBase64 = null;
+      let currentImageMime = null;
 
-    const masterSwitch = document.getElementById('master-toggle-input');
-    const toggleStatusText = document.getElementById('toggle-status-text');
+      // --- 🎙️ 音声認識エンジンの初期化 (iOS対応) ---
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recognition = null;
 
-    masterSwitch.addEventListener('change', function() {
-      if (this.checked) {
-        toggleStatusText.innerText = "ON (稼働)";
-        toggleStatusText.style.color = "#81c995";
-      } else {
-        toggleStatusText.innerText = "OFF (待機)";
-        toggleStatusText.style.color = "#9aa0a6";
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'ja-JP';
+        recognition.interimResults = true;
+        recognition.continuous = false; // iOSの安定性のために一旦falseに設定
+
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          document.getElementById('status-text').innerText = transcript;
+          document.getElementById('user-input').value = transcript;
+        };
+
+        recognition.onerror = (event) => {
+          console.error("Mic Error:", event.error);
+          document.getElementById('status-text').innerText = "再試行してください...";
+        };
+
+        recognition.onend = () => {
+          // 音声認識が終了した際の処理
+        };
       }
-    });
 
-    function autoResize(textarea) {
-      textarea.style.height = 'auto';
-      textarea.style.height = textarea.scrollHeight + 'px';
-    }
+      // --- ⚙️ UI制御 ---
+      const masterSwitch = document.getElementById('master-toggle-input');
+      const toggleStatusText = document.getElementById('toggle-status-text');
 
-    async function send() {
-      const isLocked = !masterSwitch.checked;
-      const input = document.getElementById('user-input');
-      const text = input.value.trim();
-      if (!text && !currentImageBase64) return;
+      if(masterSwitch) {
+        masterSwitch.addEventListener('change', function() {
+          toggleStatusText.innerText = this.checked ? "ON (稼働)" : "OFF (待機)";
+          toggleStatusText.style.color = this.checked ? "#81c995" : "#9aa0a6";
+        });
+      }
 
-      addMsg('user', text + (currentImageBase64 ? " [画像添付]" : ""));
-      input.value = '';
-      input.style.height = 'auto';
+      function autoResize(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
 
-      // 💡 MDSL パルス生成
-      const valA = Math.floor(Math.random() * 10);
-      let valC = Math.floor(Math.random() * 10);
-      if ((valA + valC) % 2 !== 0) valC = (valC + 1) % 10;
-      const pulse = `${AERO8_KEY}${valA}~UI_RESONANCE_1.000~${currentMode}|User|${text}${valC}`;
+      // --- 📡 通信プロトコル ---
+      async function send() {
+        const isLocked = !masterSwitch.checked;
+        const input = document.getElementById('user-input');
+        const text = input.value.trim();
+        if (!text && !currentImageBase64) return;
 
-      const payload = { payload: pulse, image: currentImageBase64, mimeType: currentImageMime, isLocked: isLocked };
-      clearImage();
+        addMsg('user', text + (currentImageBase64 ? " [画像添付]" : ""));
+        input.value = '';
+        input.style.height = 'auto';
 
-      try {
-        const response = await fetch(GATEWAY_URL, { method: "POST", body: JSON.stringify(payload) });
-        const result = await response.json();
-        if (result.status === "SUCCESS") {
-          addMsg('bot', result.message);
-        } else {
-          addMsg('bot', "拒絶されました: " + result.message);
+        const valA = Math.floor(Math.random() * 10);
+        let valC = Math.floor(Math.random() * 10);
+        if ((valA + valC) % 2 !== 0) valC = (valC + 1) % 10;
+        const pulse = `${AERO8_KEY}${valA}~UI_RESONANCE_1.000~${currentMode}|User|${text}${valC}`;
+
+        const payload = { payload: pulse, image: currentImageBase64, mimeType: currentImageMime, isLocked: isLocked };
+        clearImage();
+
+        try {
+          const response = await fetch(GATEWAY_URL, { method: "POST", body: JSON.stringify(payload) });
+          const result = await response.json();
+          if (result.status === "SUCCESS") {
+            addMsg('bot', result.message);
+          } else {
+            addMsg('bot', "拒絶されました: " + result.message);
+          }
+        } catch (error) {
+          addMsg('bot', "聖域へのパルスが届きません。接続を確認してください。");
         }
-      } catch (error) {
-        addMsg('bot', "聖域へのパルスが届きません。");
       }
-    }
 
-    function addMsg(role, text) {
-      const h = document.getElementById('chat-history');
-      const d = document.createElement('div');
-      d.className = `msg ${role}`;
-      let content = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-      if (role === 'bot') {
-        d.innerHTML = `<div class="bot-header"><span class="material-symbols-outlined" style="color:#A8C7FA;font-size:20px;">sparkle</span><span class="bot-name">HPCore</span></div><div>${content}</div>`;
-      } else {
-        d.innerHTML = `<div class="user-content">${content}</div>`;
+      function addMsg(role, text) {
+        const h = document.getElementById('chat-history');
+        const d = document.createElement('div');
+        d.className = `msg ${role}`;
+        let content = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
+        if (role === 'bot') {
+          d.innerHTML = `<div class="bot-header"><span class="material-symbols-outlined" style="color:#A8C7FA;font-size:20px;">sparkle</span><span class="bot-name">HPCore</span></div><div>${content}</div>`;
+        } else {
+          d.innerHTML = `<div class="user-content">${content}</div>`;
+        }
+        h.appendChild(d);
+        h.scrollTop = h.scrollHeight;
       }
-      h.appendChild(d);
-      h.scrollTop = h.scrollHeight;
-    }
 
-    function switchMode(mode) {
-      currentMode = mode;
-      document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-      document.getElementById('btn-' + mode).classList.add('active');
-      document.getElementById('mode-display').innerText = mode.charAt(0).toUpperCase() + mode.slice(1) + " Mode";
-    }
+      // --- 🎤 ライブモード (マイク) ---
+      function openLiveMode() {
+        if (!recognition) {
+          alert("音声認識がサポートされていません。HTTPS接続であることを確認してください。");
+          return;
+        }
+        document.getElementById('live-overlay').classList.add('active');
+        document.getElementById('status-text').innerText = "聴取中...";
+        try {
+          recognition.start();
+        } catch (e) { console.error(e); }
+      }
 
-    function toggleSidebar() {
-      const s = document.getElementById('sidebar');
-      s.style.display = (s.style.display === 'none' || s.style.display === '') ? 'flex' : 'none';
-    }
+      function closeLiveMode() {
+        document.getElementById('live-overlay').classList.remove('active');
+        if (recognition) recognition.stop();
+        if (document.getElementById('user-input').value.trim() !== "") send();
+      }
 
-    function openLiveMode() { document.getElementById('live-overlay').classList.add('active'); }
-    function closeLiveMode() { document.getElementById('live-overlay').classList.remove('active'); }
+      function switchMode(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('btn-' + mode).classList.add('active');
+        document.getElementById('mode-display').innerText = mode.charAt(0).toUpperCase() + mode.slice(1) + " Mode";
+      }
 
-    // ファイル処理
-    function handleFileSelect(e) { processFile(e.target.files[0]); }
-    function processFile(file) {
-      if (!file || !file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        currentImageBase64 = e.target.result.split(',')[1];
-        currentImageMime = file.type;
-        document.getElementById('preview-area').innerHTML = `<div style="color:#A8C7FA; font-size:12px; padding:10px;">画像準備完了: ${file.name} <span onclick="clearImage()" style="cursor:pointer; color:white;">[消去]</span></div>`;
-      };
-      reader.readAsDataURL(file);
-    }
-    function clearImage() { currentImageBase64 = null; document.getElementById('preview-area').innerHTML = ''; }
-    function checkEnter(e) { if (!e.isComposing && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
-    function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').style.display='flex'; }
-    function handleDragLeave(e) { e.preventDefault(); document.getElementById('drop-zone').style.display='none'; }
-    function handleDrop(e) { e.preventDefault(); document.getElementById('drop-zone').style.display='none'; processFile(e.dataTransfer.files[0]); }
-  </script>
+      function toggleSidebar() {
+        const s = document.getElementById('sidebar');
+        s.style.display = (s.style.display === 'none' || s.style.display === '') ? 'flex' : 'none';
+      }
+
+      function handleFileSelect(e) { processFile(e.target.files[0]); }
+      function processFile(file) {
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          currentImageBase64 = e.target.result.split(',')[1];
+          currentImageMime = file.type;
+          document.getElementById('preview-area').innerHTML = `<div style="color:#A8C7FA; font-size:12px; padding:10px;">画像準備完了 <span onclick="clearImage()" style="cursor:pointer; color:white;">[消去]</span></div>`;
+        };
+        reader.readAsDataURL(file);
+      }
+      function clearImage() { currentImageBase64 = null; document.getElementById('preview-area').innerHTML = ''; }
+      function checkEnter(e) { if (!e.isComposing && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+    </script>
 </body>
 </html>
