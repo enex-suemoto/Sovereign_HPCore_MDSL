@@ -2,8 +2,8 @@
    HPCore Aero8/D Logic Controller
    ========================================= */
 
-// ★ SET YOUR GAS URL HERE
-const API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec"; 
+// ★ BossのGASデプロイURL (設定済み)
+const API_URL = "https://script.google.com/macros/s/AKfycbxTIgk19tSVGB7FozxO16O7WSenlbSmwVb9I_Ydeo8Aoy5twOn0XL6afkDZybwPypM7oA/exec"; 
 
 // State Management
 const STATE = {
@@ -60,6 +60,12 @@ function initApp() {
   loadHistory();
 }
 
+function loadHistory() {
+    // 初回モック: サーバー連携時はここをfetchに置き換える
+    // 今回は空でOK
+}
+
+
 /* =========================================
    Auth Logic
    ========================================= */
@@ -89,6 +95,12 @@ function handleLogin(e) {
   initApp();
 }
 
+function handleRegister(e) {
+    e.preventDefault();
+    alert("登録機能はGAS側で実装されます。現在はログインのみ可能です。");
+}
+
+
 /* =========================================
    Communication (Headless API)
    ========================================= */
@@ -102,9 +114,13 @@ async function talkToCore(text, audioBlob = null) {
     audioInput: audioBlob ? await blobToBase64(audioBlob) : null
   };
   
-  // Show UI Loading State (Optional)
-  
+  // Show Loading (Simple)
+  if(STATE.device === 'mobile'){
+      // モバイル用の簡易ローディング表示など
+  }
+
   try {
+    // ★ ここでGASへPOST送信
     const res = await fetch(API_URL, {
       method: 'POST',
       body: JSON.stringify(payload)
@@ -126,7 +142,8 @@ async function talkToCore(text, audioBlob = null) {
     
   } catch (err) {
     console.error("Core Link Error:", err);
-    appendMessage('core', "Error: Manager Core connection failed.");
+    // エラー時はフォールバックメッセージ
+    appendMessage('core', "通信エラー: Coreに接続できませんでした。");
   }
 }
 
@@ -152,7 +169,7 @@ function appendMessage(role, text) {
   div.innerHTML = text; // Should sanitize in production
   
   // Syntax Highlight if code block exists
-  if (text.includes('```')) {
+  if (text.includes('```') && typeof Prism !== 'undefined') {
     Prism.highlightAllUnder(div);
   }
   
@@ -168,8 +185,26 @@ function sendMobileMessage() {
   appendMessage('user', text);
   input.value = '';
   handleMobileInput(input);
-  talkToCore(text);
+  talkToCore(text); // 送信実行
 }
+
+function sendPcMessage() {
+    const input = document.getElementById('pc-input');
+    const text = input.value.trim();
+    if(!text) return;
+
+    appendMessage('user', text);
+    input.value = '';
+    talkToCore(text);
+}
+
+function handlePcKeydown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendPcMessage();
+    }
+}
+
 
 /* =========================================
    Live Mode (Deep Abyss)
@@ -195,7 +230,7 @@ function switchPcMode(mode) {
   
   const header = document.querySelector('.pc-header');
   if (mode === 'librarian') {
-    header.classList.add('librarian-active'); // Add CSS for high-speed anim
+    header.classList.add('librarian-active'); 
   } else {
     header.classList.remove('librarian-active');
   }
@@ -213,6 +248,10 @@ function speakNative(text) {
   window.speechSynthesis.speak(uttr);
 }
 
+function togglePcMic() {
+    alert("PCマイク機能は、Chrome Native APIを使用します（実装準備中）");
+}
+
 /* Utils */
 function blobToBase64(blob) {
   return new Promise((resolve, _) => {
@@ -220,4 +259,32 @@ function blobToBase64(blob) {
     reader.onloadend = () => resolve(reader.result.split(',')[1]);
     reader.readAsDataURL(blob);
   });
+}
+
+function playAudioBase64(base64String) {
+    const audio = new Audio("data:audio/mp3;base64," + base64String);
+    audio.play();
+}
+
+// Sidebar toggle
+function toggleSidebar(show) {
+    const panel = document.getElementById('sidebar-panel');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (show) {
+        panel.classList.add('open');
+        overlay.classList.add('active');
+    } else {
+        panel.classList.remove('open');
+        overlay.classList.remove('active');
+    }
+}
+
+function openSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'flex';
+}
+
+function closeSettingsModal(e) {
+    if (e.target.id === 'settings-modal') {
+        document.getElementById('settings-modal').style.display = 'none';
+    }
 }
