@@ -1,277 +1,231 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <title>HPCore Sanctuary</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, interactive-widget=resizes-content">
+  <meta name="theme-color" content="#131314">
+  <title>HPCore Aero8/D</title>
   
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#131314">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon.png">
 
   <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
-
-  <style>
-    /* --- CSS 統合 --- */
-    :root { --bg: #131314; --surface: #1E1F20; --text: #E3E3E3; --accent: #A8C7FA; }
-    body { background: var(--bg); color: var(--text); font-family: 'Google Sans', sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-    .sidebar { width: 260px; background: #0b0b0b; padding: 20px; display: flex; flex-direction: column; border-right: 1px solid #333; transition: transform 0.3s ease; }
-    .logo-rainbow { font-weight: 700; font-size: 20px; background: linear-gradient(90deg, #4285F4, #9B72CB, #EA4335); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .menu-item { padding: 12px; margin: 5px 0; cursor: pointer; display: flex; gap: 10px; color: #C4C7C5; border-radius: 20px; }
-    .menu-item:hover { background: rgba(255,255,255,0.1); }
-    .menu-item.active { background: #004A77; color: #C2E7FF; }
-    .main-area { flex: 1; display: flex; flex-direction: column; position: relative; width: 100%; }
-    .header { height: 60px; display: flex; justify-content: space-between; align-items: center; padding: 0 20px; border-bottom: 1px solid #333; }
-    #chat-history { flex: 1; overflow-y: auto; padding: 20px 10%; display: flex; flex-direction: column; gap: 20px; padding-bottom: 120px; }
-    .msg { max-width: 800px; line-height: 1.6; }
-    .bot { align-self: flex-start; }
-    .user { align-self: flex-end; margin-left: auto; }
-    .user-content { background: #28292A; padding: 10px 15px; border-radius: 15px; display: inline-block; color: white; }
-    .bot-header { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-    .controls { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; display: flex; justify-content: center; background: linear-gradient(transparent, var(--bg)); }
-    .input-container { width: 100%; max-width: 800px; background: var(--surface); border-radius: 30px; padding: 10px 20px; display: flex; align-items: flex-end; }
-    textarea { flex: 1; background: transparent; border: none; color: white; outline: none; resize: none; font-size: 16px; padding: 8px 0; max-height: 200px; }
-    .action-btn { cursor: pointer; color: #C4C7C5; margin-left: 10px; padding-bottom: 5px; }
-    
-    /* スイッチ */
-    .ios-switch { position: relative; display: inline-block; width: 46px; height: 26px; }
-    .ios-switch input { opacity: 0; width: 0; height: 0; }
-    .ios-slider { position: absolute; cursor: pointer; inset: 0; background-color: #5f6368; transition: .4s; border-radius: 34px; }
-    .ios-slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-    input:checked + .ios-slider { background-color: #4285F4; }
-    input:checked + .ios-slider:before { transform: translateX(20px); }
-    .sidebar-toggle-container { padding: 12px 16px; border-top: 1px solid #3c4043; background: rgba(0,0,0,0.2); margin-top: auto; }
-    .disabled-area { opacity: 0.5; pointer-events: none; }
-
-    /* Live Mode */
-    .live-overlay { display: none; position: fixed; inset: 0; background: #000; z-index: 999; flex-direction: column; justify-content: space-between; }
-    .live-overlay.active { display: flex; }
-    .water-container { position: absolute; bottom: 0; width: 100%; height: 70%; -webkit-mask-image: linear-gradient(to top, black 20%, transparent 90%); }
-    .water-wave { position: absolute; border-radius: 45%; filter: blur(60px); opacity: 0.7; background: #0b57d0; width: 200%; height: 100%; bottom: -40%; left: -50%; }
-
-    @media (max-width: 800px) {
-      .sidebar, .pc-mode-text { display: none !important; }
-      #chat-history { padding: 20px 5%; }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="style.css">
 </head>
-<body ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+<body>
 
-  <div id="drop-zone" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:1000; justify-content:center; align-items:center; color:white; font-size:24px;">画像をドロップ</div>
+  <div id="auth-modal" class="auth-overlay">
+    <div class="auth-card">
+      <div class="auth-header">
+        <span class="core-logo rainbow-text">HPCore</span>
+      </div>
+      
+      <div class="auth-tabs">
+        <div class="tab active" onclick="switchAuthTab('login')">LOGIN</div>
+        <div class="tab" onclick="switchAuthTab('register')">REGISTER</div>
+      </div>
+
+      <form id="login-form" class="auth-form active" onsubmit="handleLogin(event)">
+        <div class="input-group">
+          <input type="text" id="login-id" placeholder="User ID" autocomplete="username" required>
+        </div>
+        <div class="input-group">
+          <input type="password" id="login-pass" placeholder="Password" autocomplete="current-password" required>
+        </div>
+        <div class="auth-options">
+          <label><input type="checkbox" id="remember-me"> Remember me</label>
+        </div>
+        <button type="submit" class="auth-btn">LOGIN</button>
+      </form>
+
+      <form id="register-form" class="auth-form" onsubmit="handleRegister(event)">
+        <input type="text" id="reg-id" placeholder="User ID (Unique)" required>
+        <input type="text" id="reg-name" placeholder="Display Name" required>
+        <input type="email" id="reg-email" placeholder="Email (Auth Code)" required>
+        <input type="tel" id="reg-mobile" placeholder="Mobile (Security Alert)" required pattern="[0-9]*">
+        <input type="text" id="reg-line" placeholder="LINE ID (Optional)">
+        <input type="password" id="reg-pass" placeholder="Password (Min 8 chars)" minlength="8" required>
+        <button type="submit" class="auth-btn register-btn">CREATE ACCOUNT</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="mobile-view" class="app-view" style="display:none;">
+    <header class="mobile-header sticky-header">
+      <div class="header-left">
+        <span class="material-symbols-outlined icon-btn" onclick="toggleSidebar(true)">menu</span>
+      </div>
+      <div class="header-center">
+        <span class="core-logo rainbow-text">HPCore</span>
+      </div>
+      <div class="header-right" onclick="openSettingsModal()">
+        <span class="user-name-display" id="mobile-username">Guest</span>
+      </div>
+    </header>
+
+    <main class="chat-stream" id="mobile-chat-stream">
+      <div class="zero-state">
+        <h1 class="greeting-text">
+          <span class="greeting-name" id="greeting-name">Boss</span>、<br>
+          何から始めますか？
+        </h1>
+      </div>
+      <div id="mobile-history-container"></div>
+      <div class="stream-spacer"></div>
+    </main>
+
+    <footer class="input-dock">
+      <div class="capsule-container">
+        <div class="capsule-btn plus-btn" onclick="triggerFileUpload()">
+          <span class="material-symbols-outlined">add</span>
+        </div>
+        <textarea id="mobile-input" rows="1" placeholder="Coreに相談" oninput="handleMobileInput(this)"></textarea>
+        
+        <div class="action-area" id="mobile-action-area">
+          <div class="voice-group" id="voice-group">
+            <div class="capsule-icon mic-wrapper" id="mobile-mic-btn" onclick="toggleMobileMic()">
+              <span class="material-symbols-outlined">mic</span>
+              <div class="mic-pulse"></div>
+            </div>
+            <div class="capsule-icon live-wrapper" onclick="startLiveMode()">
+              <img src="https://storage.googleapis.com/logi-app-design/chatbtn.png" alt="Live" class="live-icon-img">
+            </div>
+          </div>
+          <div class="send-group hidden" id="send-group">
+            <span class="material-symbols-outlined send-icon" onclick="sendMobileMessage()">send</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+    <aside class="sidebar-panel" id="sidebar-panel">
+      <div class="sidebar-top">
+        <div class="new-chat-btn" onclick="resetChat()">
+          <span class="material-symbols-outlined">add</span> New Chat
+        </div>
+      </div>
+      <div class="sidebar-middle">
+        <div class="sidebar-section-header">最近 (Recent)</div>
+        <div id="topic-list" class="topic-list">
+          </div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-item" onclick="openSettingsModal()">
+          <span class="material-symbols-outlined">settings</span> Settings
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <div id="pc-view" class="app-view" style="display:none;">
+    <div class="pc-layout">
+      <aside class="pc-sidebar">
+        <div class="pc-brand">
+          <span class="core-logo rainbow-text small">HPCore v3.0</span>
+          <div class="pc-user-info" id="pc-user-info">Boss (Master)</div>
+        </div>
+        
+        <div class="pc-mode-selector">
+          <div class="mode-btn active" id="mode-partner" onclick="switchPcMode('partner')">
+            <span class="material-symbols-outlined">psychology</span> Partner Mode
+          </div>
+          <div class="mode-btn" id="mode-librarian" onclick="switchPcMode('librarian')">
+            <span class="material-symbols-outlined">construction</span> Librarian Mode
+            <div class="mode-glow"></div>
+          </div>
+        </div>
+
+        <div class="pc-topics-container">
+          <div class="sidebar-section-header">Topics</div>
+          <div id="pc-topic-list" class="topic-list"></div>
+        </div>
+      </aside>
+
+      <main class="pc-console">
+        <header class="pc-header">
+          <div class="header-line-anim"></div>
+          <div class="current-mode-label" id="pc-mode-label">Partner Mode</div>
+          <div class="pc-header-tools">
+            <span class="material-symbols-outlined icon-btn" onclick="togglePcVoiceRead()" id="pc-speaker-btn">volume_up</span>
+            <span class="material-symbols-outlined icon-btn" onclick="openSettingsModal()">settings</span>
+          </div>
+        </header>
+
+        <div class="pc-stream" id="pc-chat-stream">
+          </div>
+
+        <div class="pc-input-area">
+          <div class="pc-input-wrapper">
+            <textarea id="pc-input" placeholder="Command or Chat..." onkeydown="handlePcKeydown(event)"></textarea>
+            <div class="pc-input-tools">
+              <span class="material-symbols-outlined icon-btn" id="pc-mic-btn" onclick="togglePcMic()">mic</span>
+              <span class="material-symbols-outlined icon-btn send-btn" onclick="sendPcMessage()">send</span>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
 
   <div id="live-overlay" class="live-overlay">
-    <div class="live-header"><div class="logo-rainbow" style="font-size:32px;">HPCore LIVE</div></div>
-    <div class="water-container"><div class="water-wave" id="wave-main"></div></div>
-    <div id="status-text" style="color:white; text-align:center; z-index:10;">System Ready.</div>
+    <div class="live-header">
+      <span class="core-logo rainbow-text live-title">OneCore Live</span>
+    </div>
+    
+    <div class="abyss-container">
+      <div class="wave wave1"></div>
+      <div class="wave wave2"></div>
+      <div class="wave wave3"></div>
+    </div>
+
     <div class="live-controls">
-      <div class="live-btn" style="width:60px;height:60px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;">1.1x</div>
-      <div class="live-btn close-btn" onclick="closeLiveMode()" style="width:60px;height:60px;border-radius:50%;background:#EA4335;display:flex;align-items:center;justify-content:center;color:white;">✕</div>
+      <div class="live-btn speed-btn" onclick="toggleLiveSpeed()">
+        <span id="live-speed-val">x1.0</span>
+      </div>
+      <div class="live-btn pause-btn" onclick="toggleLivePause()">
+        <span class="material-symbols-outlined" id="live-pause-icon">pause</span>
+      </div>
+      <div class="live-btn close-btn" onclick="stopLiveSession()">
+        <span class="material-symbols-outlined">close</span>
+      </div>
     </div>
   </div>
 
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header"><div class="logo-rainbow">HPCore</div></div>
-    <div class="sidebar-menu">
-      <div class="menu-item active" id="btn-partner" onclick="switchMode('partner')"><span class="material-symbols-outlined">psychology</span> Partner</div>
-      <div class="menu-item" id="btn-librarian" onclick="switchMode('librarian')"><span class="material-symbols-outlined">library_books</span> Librarian</div>
-      <div class="sidebar-toggle-container">
-        <div style="font-size:12px; color:#aaa; margin-bottom:8px;">Safety Lock</div>
-        <div style="display:flex; align-items:center; justify-content: space-between;">
-          <label class="ios-switch"><input type="checkbox" id="master-toggle-input"><span class="ios-slider"></span></label>
-          <span id="toggle-status-text" style="margin-left:10px; font-size:12px; color:#9aa0a6;">OFF</span>
+  <div id="settings-modal" class="modal-backdrop" onclick="closeSettingsModal(event)">
+    <div class="modal-card">
+      <h3>Settings</h3>
+      <div class="setting-item">
+        <label>Voice Gender</label>
+        <select id="voice-gender-select">
+          <option value="male">Male (Neural2-B)</option>
+          <option value="female">Female (Neural2-A)</option>
+        </select>
+      </div>
+      
+      <div id="admin-danger-zone" style="display:none; margin-top:20px; border-top:1px solid #444; padding-top:10px;">
+        <h4 style="color:#EA4335;">Danger Zone</h4>
+        <div class="setting-item">
+          <label style="color:#EA4335;">Rule Manager</label>
+          <label class="switch">
+            <input type="checkbox" id="rule-manager-toggle" onchange="toggleRuleManager(this)">
+            <span class="slider"></span>
+          </label>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="main-area">
-    <div class="header">
-      <div class="header-left">
-        <span class="material-symbols-outlined" style="cursor:pointer;" onclick="toggleSidebar()">menu</span>
-        <span class="logo-rainbow" style="margin-left:15px;">HPCore</span>
-        <span class="pc-mode-text" id="mode-display" style="margin-left:20px; color:#C4C7C5; font-size:14px;">Partner Mode</span>
-      </div>
-      <span class="material-symbols-outlined action-btn" onclick="openLiveMode()">mic</span>
-    </div>
-
-    <div id="chat-history">
-      <div class="msg bot">
-        <div class="bot-header">
-          <span class="material-symbols-outlined" style="color:#A8C7FA; font-size:20px;">sparkle</span>
-          <span class="bot-name">HPCore</span>
-        </div>
-        <div>System Ready. エネックスの法典に基づき、待機中。</div>
-      </div>
-    </div>
-
-    <div id="preview-area" style="padding: 0 20px;"></div>
-
-    <div class="controls">
-      <div class="input-container">
-        <span class="material-symbols-outlined action-btn" onclick="document.getElementById('file-input').click()">add_circle</span>
-        <input type="file" id="file-input" style="display:none" accept="image/*" onchange="handleFileSelect(event)">
-        <textarea id="user-input" rows="1" placeholder="メッセージを送信" oninput="autoResize(this)" onkeydown="checkEnter(event)"></textarea>
-        <span class="material-symbols-outlined action-btn" onclick="send()" style="color:#A8C7FA">send</span>
-      </div>
-    </div>
-  </div>
-
-  <script>
-      /* --- 🚀 統合制御システム (Communication & Voice) --- */
-      const isArchitect = true;
-      const GATEWAY_URL = "https://script.google.com/macros/s/AKfycbzUErv5B6v8uMA5YhX_LMam55a5Re082GPBjF3SOsaojsuUYQDTMQ0_sa8gaTC728k6/exec";
-      const AERO8_KEY = "earD";
-
-      let currentMode = 'partner';
-      let currentImageBase64 = null;
-      let currentImageMime = null;
-
-      // --- 🎙️ 音声認識エンジンの初期化 (iOS対応) ---
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      let recognition = null;
-
-      if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'ja-JP';
-        recognition.interimResults = true;
-        recognition.continuous = false; // iOSの安定性のために一旦falseに設定
-
-        recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('status-text').innerText = transcript;
-                document.getElementById('user-input').value = transcript;
-
-                // 💡 3秒間沈黙が続いたら自動で閉じて送信するタイマー（任意）
-                clearTimeout(window.micTimer);
-                window.micTimer = setTimeout(() => {
-                   if(document.getElementById('live-overlay').classList.contains('active')) {
-                       closeLiveMode();
-                   }
-                }, 3000);
-              };
-
-        recognition.onerror = (event) => {
-          console.error("Mic Error:", event.error);
-          document.getElementById('status-text').innerText = "再試行してください...";
-        };
-
-        recognition.onend = () => {
-          // 音声認識が終了した際の処理
-        };
-      }
-
-      // --- ⚙️ UI制御 ---
-      const masterSwitch = document.getElementById('master-toggle-input');
-      const toggleStatusText = document.getElementById('toggle-status-text');
-
-      if(masterSwitch) {
-        masterSwitch.addEventListener('change', function() {
-          toggleStatusText.innerText = this.checked ? "ON (稼働)" : "OFF (待機)";
-          toggleStatusText.style.color = this.checked ? "#81c995" : "#9aa0a6";
-        });
-      }
-
-      function autoResize(textarea) {
-        textarea.style.height = 'auto';
-        textarea.style.height = textarea.scrollHeight + 'px';
-      }
-
-      // --- 📡 通信プロトコル ---
-      async function send() {
-        const isLocked = !masterSwitch.checked;
-        const input = document.getElementById('user-input');
-        const text = input.value.trim();
-        if (!text && !currentImageBase64) return;
-
-        addMsg('user', text + (currentImageBase64 ? " [画像添付]" : ""));
-        input.value = '';
-        input.style.height = 'auto';
-
-        const valA = Math.floor(Math.random() * 10);
-        let valC = Math.floor(Math.random() * 10);
-        if ((valA + valC) % 2 !== 0) valC = (valC + 1) % 10;
-        const pulse = `${AERO8_KEY}${valA}~UI_RESONANCE_1.000~${currentMode}|User|${text}${valC}`;
-
-        const payload = { payload: pulse, image: currentImageBase64, mimeType: currentImageMime, isLocked: isLocked };
-        clearImage();
-
-        try {
-          const response = await fetch(GATEWAY_URL, { method: "POST", body: JSON.stringify(payload) });
-          const result = await response.json();
-          if (result.status === "SUCCESS") {
-            addMsg('bot', result.message);
-          } else {
-            addMsg('bot', "拒絶されました: " + result.message);
-          }
-        } catch (error) {
-          addMsg('bot', "聖域へのパルスが届きません。接続を確認してください。");
-        }
-      }
-
-      function addMsg(role, text) {
-        const h = document.getElementById('chat-history');
-        const d = document.createElement('div');
-        d.className = `msg ${role}`;
-        let content = text.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>').replace(/\n/g, '<br>');
-        if (role === 'bot') {
-          d.innerHTML = `<div class="bot-header"><span class="material-symbols-outlined" style="color:#A8C7FA;font-size:20px;">sparkle</span><span class="bot-name">HPCore</span></div><div>${content}</div>`;
-        } else {
-          d.innerHTML = `<div class="user-content">${content}</div>`;
-        }
-        h.appendChild(d);
-        h.scrollTop = h.scrollHeight;
-      }
-
-      // --- 🎤 ライブモード (マイク) ---
-      function openLiveMode() {
-        if (!recognition) {
-          alert("音声認識がサポートされていません。HTTPS接続であることを確認してください。");
-          return;
-        }
-        document.getElementById('live-overlay').classList.add('active');
-        document.getElementById('status-text').innerText = "聴取中...";
-        try {
-          recognition.start();
-        } catch (e) { console.error(e); }
-      }
-
-      function closeLiveMode() {
-        document.getElementById('live-overlay').classList.remove('active');
-        if (recognition) recognition.stop();
-        
-        // 💡 ここが重要：入力欄に文字があれば送信する
-        if (document.getElementById('user-input').value.trim() !== "") {
-          send();
-        }
-      }
-
-      function switchMode(mode) {
-        currentMode = mode;
-        document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
-        document.getElementById('btn-' + mode).classList.add('active');
-        document.getElementById('mode-display').innerText = mode.charAt(0).toUpperCase() + mode.slice(1) + " Mode";
-      }
-
-      function toggleSidebar() {
-        const s = document.getElementById('sidebar');
-        s.style.display = (s.style.display === 'none' || s.style.display === '') ? 'flex' : 'none';
-      }
-
-      function handleFileSelect(e) { processFile(e.target.files[0]); }
-      function processFile(file) {
-        if (!file || !file.type.startsWith('image/')) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          currentImageBase64 = e.target.result.split(',')[1];
-          currentImageMime = file.type;
-          document.getElementById('preview-area').innerHTML = `<div style="color:#A8C7FA; font-size:12px; padding:10px;">画像準備完了 <span onclick="clearImage()" style="cursor:pointer; color:white;">[消去]</span></div>`;
-        };
-        reader.readAsDataURL(file);
-      }
-      function clearImage() { currentImageBase64 = null; document.getElementById('preview-area').innerHTML = ''; }
-      function checkEnter(e) { if (!e.isComposing && e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
-    </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
