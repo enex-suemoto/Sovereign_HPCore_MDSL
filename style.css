@@ -1,0 +1,178 @@
+/* =========================================
+   HPCore Aero8/D Design System
+   ========================================= */
+:root {
+  --bg-deep: #131314;
+  --bg-surface: #1E1F20;
+  --bg-sidebar: #0b0b0b;
+  --text-main: #E3E3E3;
+  --text-sub: #C4C7C5;
+  --accent-blue: #A8C7FA;
+  --accent-amber: #FBBC04;
+  --danger: #EA4335;
+  --rainbow: linear-gradient(90deg, #4285F4, #9B72CB, #EA4335, #FBBC04);
+}
+
+body {
+  margin: 0; padding: 0;
+  background-color: var(--bg-deep);
+  color: var(--text-main);
+  font-family: 'Google Sans', sans-serif;
+  height: 100vh; overflow: hidden;
+}
+
+/* Rainbow Text */
+.rainbow-text {
+  background: var(--rainbow);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: rainbow-anim 6s ease infinite;
+}
+@keyframes rainbow-anim { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+
+/* =========================================
+   1. Auth Gatekeeper (Glass & Abyss)
+   ========================================= */
+.auth-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  backdrop-filter: blur(10px);
+  z-index: 9999;
+  display: flex; justify-content: center; align-items: center;
+}
+.auth-card {
+  background: var(--bg-surface);
+  width: 90%; max-width: 360px;
+  padding: 30px; border-radius: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+.auth-header { text-align: center; margin-bottom: 20px; font-size: 24px; font-weight: 700; }
+.auth-tabs { display: flex; margin-bottom: 20px; border-bottom: 1px solid #333; }
+.tab { flex: 1; text-align: center; padding: 10px; cursor: pointer; color: var(--text-sub); }
+.tab.active { color: var(--accent-blue); border-bottom: 2px solid var(--accent-blue); }
+.auth-form { display: none; flex-direction: column; gap: 15px; }
+.auth-form.active { display: flex; }
+input {
+  background: #2C2C2C; border: 1px solid #444; color: #FFF;
+  padding: 12px; border-radius: 8px; font-size: 16px; width: 100%; box-sizing: border-box;
+}
+.auth-btn {
+  background: var(--accent-blue); color: #000; border: none;
+  padding: 12px; border-radius: 24px; font-weight: 700; cursor: pointer; margin-top: 10px;
+}
+
+/* =========================================
+   2. Mobile View (Gemini Clone)
+   ========================================= */
+.mobile-header {
+  height: 60px; display: flex; justify-content: space-between; align-items: center;
+  padding: 0 20px; background: var(--bg-deep); z-index: 100;
+}
+.icon-btn { font-size: 24px; cursor: pointer; color: var(--text-sub); }
+.core-logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+
+.chat-stream {
+  flex: 1; overflow-y: auto; padding: 20px;
+  display: flex; flex-direction: column;
+}
+.zero-state { margin-top: 10vh; text-align: center; }
+.greeting-text { font-size: 28px; line-height: 1.4; color: var(--text-sub); }
+.greeting-name { background: var(--rainbow); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Input Dock (Capsule) */
+.input-dock {
+  background: var(--bg-deep); padding: 10px 16px 20px;
+}
+.capsule-container {
+  background: var(--bg-surface); border-radius: 28px; padding: 8px 12px;
+  display: flex; align-items: flex-end; transition: 0.2s;
+}
+.capsule-container:focus-within { background: #2C2C2C; }
+textarea {
+  background: transparent; border: none; color: #FFF; outline: none;
+  resize: none; font-family: inherit; font-size: 16px; flex: 1; padding: 10px 5px;
+  max-height: 120px;
+}
+.capsule-btn {
+  width: 36px; height: 36px; border-radius: 50%; background: #333;
+  display: flex; justify-content: center; align-items: center; margin-right: 8px; margin-bottom: 4px;
+}
+.action-area { display: flex; align-items: center; margin-left: 8px; padding-bottom: 4px; }
+.voice-group, .send-group { display: flex; gap: 12px; align-items: center; }
+.hidden { display: none !important; }
+.live-icon-img { width: 24px; height: 24px; object-fit: contain; }
+
+/* Sidebar */
+.sidebar-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+  opacity: 0; pointer-events: none; transition: 0.3s;
+}
+.sidebar-panel {
+  position: fixed; top: 0; left: 0; bottom: 0; width: 280px;
+  background: var(--bg-surface); z-index: 210;
+  transform: translateX(-100%); transition: 0.3s cubic-bezier(0.4,0,0.2,1);
+  padding: 20px; display: flex; flex-direction: column;
+}
+.sidebar-panel.open { transform: translateX(0); }
+.sidebar-overlay.active { opacity: 1; pointer-events: auto; }
+
+/* =========================================
+   3. PC Desktop View (Cockpit)
+   ========================================= */
+.pc-layout { display: flex; height: 100vh; }
+.pc-sidebar {
+  width: 300px; background: var(--bg-sidebar); border-right: 1px solid #333;
+  display: flex; flex-direction: column; padding: 20px;
+}
+.pc-console { flex: 1; display: flex; flex-direction: column; background: var(--bg-deep); }
+.pc-brand { margin-bottom: 30px; }
+.pc-mode-selector { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+.mode-btn {
+  padding: 12px 20px; border-radius: 12px; cursor: pointer;
+  display: flex; align-items: center; gap: 10px; color: var(--text-sub); transition: 0.2s;
+}
+.mode-btn:hover { background: rgba(255,255,255,0.05); }
+.mode-btn.active { background: rgba(11, 87, 208, 0.3); color: var(--accent-blue); }
+#mode-librarian.active { background: rgba(251, 188, 4, 0.2); color: var(--accent-amber); }
+
+.pc-input-area { padding: 20px; display: flex; justify-content: center; }
+.pc-input-wrapper {
+  width: 100%; max-width: 800px; background: var(--bg-surface);
+  border-radius: 16px; padding: 15px; position: relative;
+}
+#pc-input { min-height: 60px; font-family: 'Fira Code', monospace; }
+.pc-input-tools { position: absolute; bottom: 10px; right: 10px; display: flex; gap: 10px; }
+
+/* =========================================
+   4. Live Overlay (Deep Abyss)
+   ========================================= */
+.live-overlay {
+  position: fixed; inset: 0; background: #000; z-index: 900;
+  transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex; flex-direction: column; align-items: center;
+}
+.live-overlay.active { transform: translateY(0); }
+.live-header { margin-top: 60px; z-index: 910; }
+.live-title { font-size: 24px; font-weight: 800; }
+.abyss-container {
+  position: absolute; bottom: 0; width: 100%; height: 50%;
+  overflow: hidden; pointer-events: none;
+}
+.wave {
+  position: absolute; bottom: -50%; width: 200%; height: 200%;
+  border-radius: 40%; animation: rotate 10s infinite linear; opacity: 0.4;
+}
+.wave1 { background: #0b57d0; left: -50%; }
+.wave2 { background: #A8C7FA; right: -50%; animation-duration: 12s; }
+@keyframes rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.live-controls {
+  position: absolute; bottom: 50px; display: flex; gap: 30px; z-index: 920;
+}
+.live-btn {
+  width: 70px; height: 70px; border-radius: 35px; background: rgba(255,255,255,0.1);
+  display: flex; justify-content: center; align-items: center; cursor: pointer;
+  backdrop-filter: blur(5px);
+}
+.close-btn { background: #EA4335; }
